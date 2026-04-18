@@ -1,0 +1,61 @@
+package com.harmony.sistema.controller.publico;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.harmony.sistema.dto.TallerResponseDTO;
+import com.harmony.sistema.model.Horario;
+import com.harmony.sistema.model.Taller;
+import com.harmony.sistema.service.HorarioService;
+import com.harmony.sistema.service.TallerService;
+
+@RestController
+@RequestMapping("/api/talleres")
+@CrossOrigin(origins = "http://localhost:4200")
+public class TallerRestController {
+
+    @Autowired
+    private TallerService tallerService;
+
+    @Autowired
+    private HorarioService horarioService;
+
+    /**
+     * Endpoint para obtener la lista de talleres activos con sus horarios abiertos.
+     * GET /api/talleres/detallados/activos
+     */
+    @GetMapping("/detallados/activos")
+    public List<TallerResponseDTO> getTalleresDetalladosActivos() {
+        System.out.println("[INFO] [CONTROLLER] Mapeando solicitud GET a /api/talleres/detallados/activos.");
+
+        List<Taller> talleres = tallerService.encontrarTalleresActivos();
+
+        List<TallerResponseDTO> dtoList = talleres.stream()
+                .map(taller -> {
+                    List<Horario> horariosAbiertos = horarioService.getHorariosAbiertosByTallerId(taller.getId());
+                    boolean tieneHorariosDefinidos = !horarioService.getAllHorariosByTallerId(taller.getId()).isEmpty();
+
+                    return new TallerResponseDTO(
+                            taller.getId(),
+                            taller.getNombre(),
+                            taller.getDescripcion(),
+                            taller.getImagenTaller(),
+                            taller.getDuracionSemanas(),
+                            taller.getClasesPorSemana(),
+                            taller.getPrecio().doubleValue(),
+                            taller.getTemas(),
+                            horariosAbiertos,
+                            tieneHorariosDefinidos);
+                })
+                .collect(Collectors.toList());
+
+        System.out.println("[SUCCESS] [CONTROLLER] Retornando " + dtoList.size() + " talleres detallados.");
+        return dtoList;
+    }
+}

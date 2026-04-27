@@ -81,7 +81,7 @@ class ClienteEdicionIntegrationTest {
                 .orElseThrow(() -> new IllegalStateException("No se encontro el rol ROLE_CLIENTE"));
 
         // 2. Generar un correo único para evitar colisiones entre pruebas.
-        String email = "cliente.edicion." + UUID.randomUUID() + "@harmony.com";
+        String email = "clienteOriginal@harmony.com";
 
         // 3. Crear y guardar el usuario asociado al cliente.
         User user = User.builder()

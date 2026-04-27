@@ -41,7 +41,9 @@ public class ClienteRestController {
 
         Cliente cliente = clienteRepository.findByUserEmail(email)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
-        System.out.println("[SUCCESS] [CLIENTE REST] Cliente encontrado. ID: " + cliente.getId());
+        System.out.println("[SUCCESS] [CLIENTE REST] Cliente seleccionado encontrado. ID: " + cliente.getId());
+        System.out.println("[INFO] [CLIENTE REST] Datos del cliente - Nombre: " + cliente.getNombreCompleto()
+                + ", Correo: " + cliente.getCorreo() + ", Teléfono: " + cliente.getTelefono());
 
         List<HorarioClienteDTO> horarios = cliente.getInscripciones().stream()
                 .map(inscripcion -> {
@@ -74,7 +76,7 @@ public class ClienteRestController {
                 })
                 .collect(Collectors.toList());
 
-        System.out.println("[SUCCESS] [CLIENTE REST] Horarios del cliente obtenidos: " + horarios.size());
+        System.out.println("[INFO] [CLIENTE REST] Horarios resultantes obtenidos: " + horarios.size());
         return ResponseEntity.ok(horarios);
     }
 
@@ -103,9 +105,11 @@ public class ClienteRestController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
         System.out.println("[INFO] [CLIENTE REST] Usuario encontrado. ID: " + user.getId());
+        System.out.println("[INFO] [CLIENTE REST] Preparando actualización de contraseña para el usuario.");
 
         user.setPassword(passwordEncoder.encode(request.getNuevaContrasena()));
         userRepository.save(user);
+        System.out.println("[INFO] [CLIENTE REST] Datos resultantes - Contraseña actualizada correctamente.");
         System.out.println("[SUCCESS] [CLIENTE REST] Contraseña actualizada y guardada para: " + email);
 
         return ResponseEntity.ok("Contraseña cambiada exitosamente");

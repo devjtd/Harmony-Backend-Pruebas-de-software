@@ -107,6 +107,9 @@ public class ClienteService {
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
 
         User user = cliente.getUser();
+        System.out.println("[SUCCESS] [CLIENTE] Cliente seleccionado encontrado.");
+        System.out.println("[INFO] [CLIENTE] Datos iniciales del cliente - Nombre: " + cliente.getNombreCompleto()
+                + ", Correo: " + cliente.getCorreo() + ", Telefono: " + cliente.getTelefono());
 
         // 2. Actualiza los campos del Cliente.
         cliente.setNombreCompleto(nuevoNombre);
@@ -114,10 +117,11 @@ public class ClienteService {
         cliente.setCorreo(nuevoCorreo); // <--- Actualizar el correo en la entidad Cliente
 
         boolean emailCambiado = !originalCorreo.equalsIgnoreCase(nuevoCorreo);
-        System.out.println("[INFO] [CLIENTE] ¿Correo cambiado?: " + emailCambiado);
 
         if (emailCambiado && user != null) {
-            System.out.println("[INFO] [CLIENTE] Correo electrónico cambiado. Actualizando credenciales.");
+            System.out.println("[INFO] [CLIENTE] El correo del cliente fue modificado.");
+            System.out.println("[INFO] [CLIENTE] Correo anterior: " + originalCorreo);
+            System.out.println("[INFO] [CLIENTE] Correo nuevo: " + nuevoCorreo);
 
             // 3a. Valida que el nuevo correo no esté ya asignado a otro usuario.
             if (userRepository.findByEmail(nuevoCorreo).isPresent() &&
@@ -134,6 +138,7 @@ public class ClienteService {
             user.setPassword(passwordEncoder.encode(nuevaPasswordRandom));
             userRepository.save(user);
             System.out.println("[SUCCESS] [CLIENTE] User actualizado y guardado con nueva contraseña.");
+            System.out.println("[INFO] [CLIENTE] Contraseña temporal generada para el nuevo correo.");
 
             // 3c. Envía una notificación por correo con las nuevas credenciales temporales.
             String asunto = "IMPORTANTE: Cambio de Correo y Contraseña Temporal - Harmony";
@@ -150,13 +155,14 @@ public class ClienteService {
         } else if (!emailCambiado && user != null) {
             // 4. Si el email no cambió, solo guarda el User para mantener la sesión abierta
             userRepository.save(user);
-            System.out.println(
-                    "[INFO] [CLIENTE] Email no cambiado. Solo actualizando datos del cliente y guardando User.");
+            System.out.println("[INFO] [CLIENTE] El correo no fue modificado. Se actualizaron solo nombre y teléfono.");
         }
 
         // 5. Guarda el Cliente actualizado.
         clienteRepository.save(cliente);
-            System.out.println("[SUCCESS] [CLIENTE] Cliente ID " + clienteId + " actualizado exitosamente.");
+        System.out.println("[INFO] [CLIENTE] Datos resultantes del cliente - Nombre: " + cliente.getNombreCompleto()
+                + ", Correo: " + cliente.getCorreo() + ", Telefono: " + cliente.getTelefono());
+        System.out.println("[SUCCESS] [CLIENTE] Cliente ID " + clienteId + " actualizado exitosamente.");
 
         return cliente;
     }
@@ -170,7 +176,9 @@ public class ClienteService {
         // 1. Busca el Cliente
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
-        System.out.println("[SUCCESS] [CLIENTE] Cliente encontrado para baja. Correo: " + cliente.getCorreo());
+        System.out.println("[SUCCESS] [CLIENTE] Cliente seleccionado encontrado para baja.");
+        System.out.println("[INFO] [CLIENTE] Datos iniciales del cliente - Nombre: " + cliente.getNombreCompleto()
+                + ", Correo: " + cliente.getCorreo() + ", Telefono: " + cliente.getTelefono());
 
         // 2. Gestionar Inscripciones y Vacantes
         List<Inscripcion> inscripciones = cliente.getInscripciones();
@@ -213,6 +221,7 @@ public class ClienteService {
         }
 
         // 4. El Cliente permanece en la base de datos (Histórico)
+        System.out.println("[INFO] [CLIENTE] Datos resultantes tras la baja - Cliente conservado sin usuario asociado.");
         System.out.println("[INFO] [CLIENTE] Proceso de BAJA completado. El registro del cliente ID " + clienteId
                 + " se ha conservado.");
     }

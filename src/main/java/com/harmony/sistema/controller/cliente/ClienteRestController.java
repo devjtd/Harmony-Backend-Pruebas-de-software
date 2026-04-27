@@ -37,9 +37,11 @@ public class ClienteRestController {
     @GetMapping("/horarios")
     public ResponseEntity<List<HorarioClienteDTO>> getHorarios(Authentication authentication) {
         String email = authentication.getName();
+        System.out.println("[INFO] [CLIENTE REST] GET /api/cliente/horarios - Usuario autenticado: " + email);
 
         Cliente cliente = clienteRepository.findByUserEmail(email)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+        System.out.println("[SUCCESS] [CLIENTE REST] Cliente encontrado. ID: " + cliente.getId());
 
         List<HorarioClienteDTO> horarios = cliente.getInscripciones().stream()
                 .map(inscripcion -> {
@@ -72,6 +74,7 @@ public class ClienteRestController {
                 })
                 .collect(Collectors.toList());
 
+        System.out.println("[SUCCESS] [CLIENTE REST] Horarios del cliente obtenidos: " + horarios.size());
         return ResponseEntity.ok(horarios);
     }
 
@@ -85,20 +88,25 @@ public class ClienteRestController {
             Authentication authentication) {
 
         String email = authentication.getName();
+        System.out.println("[INFO] [CLIENTE REST] POST /api/cliente/cambiar-clave - Usuario: " + email);
 
         if (!request.getNuevaContrasena().equals(request.getConfirmarContrasena())) {
+            System.out.println("[WARN] [CLIENTE REST] Las contraseñas no coinciden para: " + email);
             return ResponseEntity.badRequest().body("Las contraseñas no coinciden");
         }
 
         if (request.getNuevaContrasena().length() < 6) {
+            System.out.println("[WARN] [CLIENTE REST] Contraseña demasiado corta para: " + email);
             return ResponseEntity.badRequest().body("La contraseña debe tener al menos 6 caracteres");
         }
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        System.out.println("[INFO] [CLIENTE REST] Usuario encontrado. ID: " + user.getId());
 
         user.setPassword(passwordEncoder.encode(request.getNuevaContrasena()));
         userRepository.save(user);
+        System.out.println("[SUCCESS] [CLIENTE REST] Contraseña actualizada y guardada para: " + email);
 
         return ResponseEntity.ok("Contraseña cambiada exitosamente");
     }

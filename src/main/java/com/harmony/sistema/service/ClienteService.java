@@ -45,20 +45,24 @@ public class ClienteService {
 
     // Verifica si un User existe con ese email
     public Optional<User> encontrarUserPorEmail(String email) {
+        System.out.println("[INFO] [CLIENTE] Buscando User por email: " + email);
         return userRepository.findByEmail(email);
     }
 
     // Encuentra el Cliente asociado a un User
     public Cliente encontrarClientePorEmail(String email) {
+        System.out.println("[INFO] [CLIENTE] Buscando Cliente asociado al email: " + email);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario con email " + email + " no encontrado."));
 
+        System.out.println("[SUCCESS] [CLIENTE] User encontrado para email: " + email);
         return clienteRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Cliente asociado al User " + email + " no encontrado."));
     }
 
     // Encuentra un cliente por correo directamente en la tabla Cliente
     public Optional<Cliente> encontrarClientePorCorreo(String correo) {
+        System.out.println("[INFO] [CLIENTE] Buscando Cliente por correo: " + correo);
         return clienteRepository.findByCorreo(correo);
     }
 
@@ -73,6 +77,8 @@ public class ClienteService {
     // SOLO CREA CLIENTE, SIN USER NI CORREO
     public Cliente crearClienteTemporal(ClienteRegistroDTO dto) {
         System.out.println("[INFO] [CLIENTE] Iniciando creación de Cliente TEMPORAL.");
+        System.out.println("[INFO] [CLIENTE] Datos recibidos - Nombre: " + dto.getNombreCompleto()
+                + ", Correo: " + dto.getCorreo() + ", Telefono: " + dto.getTelefono());
 
         // 1. Crea y guarda la entidad Cliente (sin User)
         Cliente cliente = Cliente.builder()
@@ -94,6 +100,8 @@ public class ClienteService {
     public Cliente actualizarCliente(Long clienteId, String nuevoNombre, String nuevoCorreo, String nuevoTelefono,
             String originalCorreo) {
         System.out.println("[INFO] [CLIENTE] Iniciando actualización para Cliente ID: " + clienteId);
+        System.out.println("[INFO] [CLIENTE] Datos de actualización - Nombre: " + nuevoNombre
+                + ", Correo: " + nuevoCorreo + ", Telefono: " + nuevoTelefono);
         // 1. Busca el Cliente y su User asociado.
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
@@ -106,6 +114,7 @@ public class ClienteService {
         cliente.setCorreo(nuevoCorreo); // <--- Actualizar el correo en la entidad Cliente
 
         boolean emailCambiado = !originalCorreo.equalsIgnoreCase(nuevoCorreo);
+        System.out.println("[INFO] [CLIENTE] ¿Correo cambiado?: " + emailCambiado);
 
         if (emailCambiado && user != null) {
             System.out.println("[INFO] [CLIENTE] Correo electrónico cambiado. Actualizando credenciales.");
@@ -147,7 +156,7 @@ public class ClienteService {
 
         // 5. Guarda el Cliente actualizado.
         clienteRepository.save(cliente);
-        System.out.println("[SUCCESS] [CLIENTE] Cliente ID " + clienteId + " actualizado exitosamente.");
+            System.out.println("[SUCCESS] [CLIENTE] Cliente ID " + clienteId + " actualizado exitosamente.");
 
         return cliente;
     }
@@ -161,6 +170,7 @@ public class ClienteService {
         // 1. Busca el Cliente
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
+        System.out.println("[SUCCESS] [CLIENTE] Cliente encontrado para baja. Correo: " + cliente.getCorreo());
 
         // 2. Gestionar Inscripciones y Vacantes
         List<Inscripcion> inscripciones = cliente.getInscripciones();
@@ -178,8 +188,9 @@ public class ClienteService {
                             + ". Nuevas vacantes: " + (vacantesActuales + 1));
                 }
             }
-            // Eliminar las inscripciones de la base de datos
+            // Eliminar las inscripciones de la base de datos y sincronizar el cambio.
             inscripcionRepository.deleteAll(inscripciones);
+            inscripcionRepository.flush();
             // Limpiar la lista en memoria del objeto cliente para evitar inconsistencias si
             // se sigue usando
             cliente.getInscripciones().clear();
@@ -192,6 +203,7 @@ public class ClienteService {
             // Desvincular el User del Cliente antes de eliminarlo
             cliente.setUser(null);
             clienteRepository.save(cliente); // Guardar cliente sin usuario
+            System.out.println("[INFO] [CLIENTE] Relación cliente-user desvinculada.");
 
             userRepository.delete(user);
             System.out

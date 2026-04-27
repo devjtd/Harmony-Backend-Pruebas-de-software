@@ -24,6 +24,7 @@ public class ContraseñaService {
     @Transactional
     public boolean actualizarContrasena(String email, String nuevaContrasena) {
         System.out.println("[INFO] [PASSWORD] Iniciando actualización de contraseña para el email: " + email);
+        System.out.println("[INFO] [PASSWORD] Longitud de contraseña recibida: " + nuevaContrasena.length());
 
         // 1. Cifra la nueva contraseña.
         String contrasenaCodificada = passwordEncoder.encode(nuevaContrasena);

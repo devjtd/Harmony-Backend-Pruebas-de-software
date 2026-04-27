@@ -12,6 +12,11 @@ on:
 jobs:
   build_test:
     runs-on: ubuntu-latest
+    env:
+      SPRING_DATASOURCE_URL: jdbc:mysql://127.0.0.1:3306/harmony_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
 
     services:
       mysql:
